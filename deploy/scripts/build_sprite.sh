@@ -48,7 +48,7 @@ create_registry_file() {
 # Skip hash creation and renaming for playwright environment
 if [ "$NEXT_PUBLIC_APP_ENV" != "pw" ]; then
     # Generate hash from the sprite file
-    HASH=$(md5sum $target_dir/sprite.svg | cut -d' ' -f1 | head -c 8)
+    HASH=$(md5sum $target_dir/sprite.svg | cut -d' ' -f1 | cut -c1-8)
 
     # Remove old sprite files
     rm -f $target_dir/sprite.*.svg
