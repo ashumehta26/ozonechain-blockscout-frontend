@@ -47,8 +47,19 @@ create_registry_file() {
 
 # Skip hash creation and renaming for playwright environment
 if [ "$NEXT_PUBLIC_APP_ENV" != "pw" ]; then
+    compute_sprite_hash() {
+        local sprite_file="$1"
+        if command -v md5sum >/dev/null 2>&1; then
+            md5sum "$sprite_file" | cut -d' ' -f1 | cut -c1-8
+        elif command -v md5 >/dev/null 2>&1; then
+            md5 -q "$sprite_file" | cut -c1-8
+        else
+            node -e "const crypto=require('crypto');const fs=require('fs');process.stdout.write(crypto.createHash('md5').update(fs.readFileSync(process.argv[1])).digest('hex').slice(0,8))" "$sprite_file"
+        fi
+    }
+
     # Generate hash from the sprite file
-    HASH=$(md5sum $target_dir/sprite.svg | cut -d' ' -f1 | cut -c1-8)
+    HASH=$(compute_sprite_hash "$target_dir/sprite.svg")
 
     # Remove old sprite files
     rm -f $target_dir/sprite.*.svg
