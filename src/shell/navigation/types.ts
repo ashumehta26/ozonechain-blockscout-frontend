@@ -5,11 +5,13 @@ import type React from 'react';
 
 import type { IconName } from 'src/sprite/SpriteIcon';
 
-type NavIconOrComponent = {
-  icon?: IconName;
-} | {
-  iconComponent?: React.FC<{ size?: number; className?: string }>;
-};
+type NavIconOrComponent =
+  | {
+    icon?: IconName;
+  } |
+  {
+    iconComponent?: React.FC<{ size?: number; className?: string }>;
+  };
 
 type NavItemCommon = {
   text: string;
@@ -20,8 +22,7 @@ export type NavItemInternal = NavItemCommon & {
   isActive?: boolean;
 };
 
-export type NavItemExternal = {
-  text: string;
+export type NavItemExternal = NavItemCommon & {
   url: string;
 };
 
@@ -34,22 +35,24 @@ export type NavGroupItem = NavItemCommon & {
 
 export type NavigationLayout = 'vertical' | 'horizontal';
 
-export type NavigationPromoBannerConfig = {
-  img_url: string;
-  text: string;
-  bg_color: {
-    light: string;
-    dark: string;
+export type NavigationPromoBannerConfig =
+  | {
+    img_url: string;
+    text: string;
+    bg_color: {
+      light: string;
+      dark: string;
+    };
+    text_color: {
+      light: string;
+      dark: string;
+    };
+    link_url: string;
+  } |
+  {
+    img_url: {
+      small: string;
+      large: string;
+    };
+    link_url: string;
   };
-  text_color: {
-    light: string;
-    dark: string;
-  };
-  link_url: string;
-} | {
-  img_url: {
-    small: string;
-    large: string;
-  };
-  link_url: string;
-};

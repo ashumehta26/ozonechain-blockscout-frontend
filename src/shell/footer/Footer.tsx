@@ -7,7 +7,6 @@ import React from 'react';
 
 import type { CustomLinksGroup } from './types';
 
-import useApiQuery from 'src/api/hooks/useApiQuery';
 import useFetch from 'src/api/hooks/useFetch';
 import type { ResourceError } from 'src/api/resources';
 
@@ -20,165 +19,118 @@ import NetworkAddToWallet from 'src/features/web3-wallet/components/NetworkAddTo
 
 import config from 'src/config';
 import CopyToClipboard from 'src/shared/texts/CopyToClipboard';
-import SpriteIcon from 'src/sprite/SpriteIcon';
 
 import { Link } from 'src/toolkit/chakra/link';
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
-import { copy } from 'src/toolkit/utils/htmlEntities';
 
 import FooterCookieSettings from './FooterCookieSettings';
 import FooterLinkItem from './FooterLinkItem';
-import { getApiVersionUrl } from './get-api-version-url';
 
 const MAX_LINKS_COLUMNS = 4;
 
-const FRONT_VERSION_URL = `https://github.com/blockscout/frontend/tree/${ config.shell.footer.frontendVersion }`;
-const FRONT_COMMIT_URL = `https://github.com/blockscout/frontend/commit/${ config.shell.footer.frontendCommit }`;
-
 const Footer = () => {
-
-  const { data: backendVersionData } = useApiQuery('core:config_backend_version', {
-    queryOptions: {
-      staleTime: Infinity,
-      enabled: !config.features.multichain.isEnabled,
-      refetchOnMount: false,
-    },
-  });
-  const apiVersionUrl = getApiVersionUrl(backendVersionData?.backend_version ?? undefined);
-
-  const BLOCKSCOUT_LINKS = [
-    {
-      icon: 'social/git' as const,
-      iconSize: '20px',
-      text: 'Contribute',
-      url: 'https://github.com/blockscout/blockscout',
-    },
-    {
-      icon: 'brands/pro_api' as const,
-      iconSize: '20px',
-      text: 'PRO API',
-      url: 'https://dev.blockscout.com',
-    },
-    {
-      icon: 'brands/autoscout' as const,
-      iconSize: '20px',
-      text: 'Autoscout',
-      url: 'https://autoscout.blockscout.com',
-    },
-    {
-      icon: 'docs' as const,
-      iconSize: '20px',
-      text: 'Docs',
-      url: 'https://docs.blockscout.com',
-    },
+  const OZONE_LINKS = [
     {
       icon: 'social/twitter' as const,
       iconSize: '24px',
-      text: 'X',
-      url: 'https://x.com/blockscout',
+      text: 'X (ex-Twitter)',
+      url: 'https://twitter.com/ozonechain',
     },
     {
-      icon: 'social/discord' as const,
-      iconSize: '24px',
-      text: 'Discord',
-      url: 'https://discord.gg/blockscout',
-    },
-    {
-      icon: 'brands/blockscout' as const,
+      icon: 'social/telegram_filled' as const,
       iconSize: '20px',
-      text: 'All chains',
-      url: 'https://chains.blockscout.com',
+      text: 'Telegram',
+      url: 'https://t.me/ozonechainofficial',
+    },
+    {
+      icon: 'social/facebook_filled' as const,
+      iconSize: '20px',
+      text: 'Facebook',
+      url: 'https://www.facebook.com/ozonechain',
     },
   ].filter(Boolean);
-
-  const frontendLink = (() => {
-    if (config.shell.footer.frontendVersion) {
-      return <Link href={ FRONT_VERSION_URL } external noIcon>{ config.shell.footer.frontendVersion }</Link>;
-    }
-
-    if (config.shell.footer.frontendCommit) {
-      return <Link href={ FRONT_COMMIT_URL } external noIcon>{ config.shell.footer.frontendCommit }</Link>;
-    }
-
-    return null;
-  })();
 
   const { onionDomain } = useAppContext();
 
   const fetch = useFetch();
 
-  const { isPlaceholderData, data: linksData } = useQuery<unknown, ResourceError<unknown>, Array<CustomLinksGroup>>({
+  const { isPlaceholderData, data: linksData } = useQuery<
+    unknown,
+    ResourceError<unknown>,
+    Array<CustomLinksGroup>
+  >({
     queryKey: [ 'footer-links' ],
-    queryFn: async() => fetch(config.shell.footer.links || '', undefined, { resource: 'footer-links' }),
+    queryFn: async() =>
+      fetch(config.shell.footer.links || '', undefined, {
+        resource: 'footer-links',
+      }),
     enabled: Boolean(config.shell.footer.links),
     staleTime: Infinity,
     placeholderData: [],
   });
 
-  const colNum = isPlaceholderData ? 1 : Math.min(linksData?.length || Infinity, MAX_LINKS_COLUMNS) + 1;
+  const colNum = isPlaceholderData ?
+    1 :
+    Math.min(linksData?.length || Infinity, MAX_LINKS_COLUMNS) + 1;
 
-  const renderNetworkInfo = React.useCallback((gridArea?: GridProps['gridArea']) => {
-    return (
-      <Flex
-        alignItems="center"
-        gridArea={ gridArea }
-        flexWrap="wrap"
-        justifyContent="flex-start"
-        columnGap={ 3 }
-        rowGap={ 2 }
-        mb={{ base: 5, lg: 10 }}
-        _empty={{ display: 'none' }}
-      >
-        { !config.chain.indexingStatus.intTxs.isHidden && <IndexingStatusInternalTxs/> }
-        { !config.features.multichain.isEnabled && <NetworkAddToWallet source="Footer"/> }
-      </Flex>
-    );
-  }, []);
-
-  const renderProjectInfo = React.useCallback((gridArea?: GridProps['gridArea']) => {
-    const logoColor = { base: 'blue.600', _dark: 'white' };
-
-    return (
-      <Box gridArea={ gridArea }>
-        <Flex columnGap={ 2 } textStyle="xs" alignItems="center">
-          <span>Made with</span>
-          <Link href="https://www.blockscout.com" external noIcon display="inline-flex" color={ logoColor } _hover={{ color: logoColor }}>
-            <SpriteIcon
-              name="networks/logo-placeholder"
-              width="80px"
-              height={ 4 }
-            />
-          </Link>
-        </Flex>
-        <Text mt={ 3 } fontSize="xs">
-          Blockscout is a tool for inspecting and analyzing EVM based blockchains. Blockchain explorer for Ethereum Networks.
-        </Text>
-        <VStack mt={ 6 } alignItems="start" textStyle="xs" gap={ 1 }>
-          <Flex flexDir={ onionDomain ? 'row' : 'column' } _empty={{ display: 'none' }} columnGap={ 6 } rowGap={ 1 }>
-            { apiVersionUrl && (
-              <Text>
-                Backend: <Link href={ apiVersionUrl } external noIcon>{ backendVersionData?.backend_version }</Link>
-              </Text>
-            ) }
-            { frontendLink && (
-              <Text>
-                Frontend: { frontendLink }
-              </Text>
-            ) }
-          </Flex>
-          { onionDomain && (
-            <HStack _empty={{ display: 'none' }} columnGap={ 0 }>
-              <Text aria-label={ `Also accessible via Tor Browser: ${ onionDomain }` }>Also accessible via Tor Browser</Text>
-              <CopyToClipboard text={ onionDomain } tooltipContent="Copy .onion address to clipboard" ml={ 1 }/>
-            </HStack>
+  const renderNetworkInfo = React.useCallback(
+    (gridArea?: GridProps['gridArea']) => {
+      return (
+        <Flex
+          alignItems="center"
+          gridArea={ gridArea }
+          flexWrap="wrap"
+          justifyContent="flex-start"
+          columnGap={ 3 }
+          rowGap={ 2 }
+          mb={{ base: 5, lg: 10 }}
+          _empty={{ display: 'none' }}
+        >
+          { !config.chain.indexingStatus.intTxs.isHidden && (
+            <IndexingStatusInternalTxs/>
           ) }
-          <Text>
-            Copyright { copy } Blockscout Limited 2023-{ (new Date()).getFullYear() }
+          { !config.features.multichain.isEnabled && (
+            <NetworkAddToWallet source="Footer"/>
+          ) }
+        </Flex>
+      );
+    },
+    [],
+  );
+
+  const renderProjectInfo = React.useCallback(
+    (gridArea?: GridProps['gridArea']) => {
+      return (
+        <Box gridArea={ gridArea }>
+          <Flex columnGap={ 2 } textStyle="xs" alignItems="center">
+            <span>Powered by Ozone</span>
+          </Flex>
+          <Text mt={ 3 } fontSize="xs">
+            The Ozone blockchain represents a cutting-edge, sovereign
+            Proof-Of-Stake (PoS) network designed for exceptional performance
+            and scalability.
           </Text>
-        </VStack>
-      </Box>
-    );
-  }, [ apiVersionUrl, backendVersionData?.backend_version, frontendLink, onionDomain ]);
+          { onionDomain && (
+            <VStack mt={ 6 } alignItems="start" textStyle="xs" gap={ 1 }>
+              <HStack _empty={{ display: 'none' }} columnGap={ 0 }>
+                <Text
+                  aria-label={ `Also accessible via Tor Browser: ${ onionDomain }` }
+                >
+                  Also accessible via Tor Browser
+                </Text>
+                <CopyToClipboard
+                  text={ onionDomain }
+                  tooltipContent="Copy .onion address to clipboard"
+                  ml={ 1 }
+                />
+              </HStack>
+            </VStack>
+          ) }
+        </Box>
+      );
+    },
+    [ onionDomain ],
+  );
 
   const containerProps: HTMLChakraProps<'div'> = {
     as: 'footer',
@@ -187,7 +139,11 @@ const Footer = () => {
   };
 
   const contentProps: GridProps = {
-    px: { base: 4, lg: config.shell.navigation.layout === 'horizontal' ? 6 : 12, '2xl': 6 },
+    px: {
+      base: 4,
+      lg: config.shell.navigation.layout === 'horizontal' ? 6 : 12,
+      '2xl': 6,
+    },
     py: { base: 4, lg: 8 },
     gridTemplateColumns: { base: '1fr', lg: 'minmax(auto, 470px) 1fr' },
     columnGap: { lg: '32px', xl: '100px' },
@@ -203,9 +159,13 @@ const Footer = () => {
     return (
       <Box gridArea={ gridArea } textStyle="xs" mt={ 6 }>
         <span>This site is protected by reCAPTCHA and the Google </span>
-        <Link href="https://policies.google.com/privacy" external noIcon>Privacy Policy</Link>
+        <Link href="https://policies.google.com/privacy" external noIcon>
+          Privacy Policy
+        </Link>
         <span> and </span>
-        <Link href="https://policies.google.com/terms" external noIcon>Terms of Service</Link>
+        <Link href="https://policies.google.com/terms" external noIcon>
+          Terms of Service
+        </Link>
         <span> apply.</span>
       </Box>
     );
@@ -231,7 +191,11 @@ const Footer = () => {
           </div>
 
           <Grid
-            gap={{ base: 6, lg: colNum === MAX_LINKS_COLUMNS + 1 ? 2 : 8, xl: 12 }}
+            gap={{
+              base: 6,
+              lg: colNum === MAX_LINKS_COLUMNS + 1 ? 2 : 8,
+              xl: 12,
+            }}
             gridTemplateColumns={{
               base: 'repeat(auto-fill, 160px)',
               lg: `repeat(${ colNum }, 135px)`,
@@ -240,21 +204,29 @@ const Footer = () => {
             justifyContent={{ lg: 'flex-end' }}
             mt={{ base: 8, lg: 0 }}
           >
-            {
-              ([
-                { title: 'Blockscout', links: BLOCKSCOUT_LINKS },
-                ...(linksData || []),
-              ])
-                .slice(0, colNum)
-                .map(linkGroup => (
-                  <Box key={ linkGroup.title }>
-                    <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" loading={ isPlaceholderData }>{ linkGroup.title }</Skeleton>
-                    <VStack gap={ 1 } alignItems="start">
-                      { linkGroup.links.map(link => <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>) }
-                    </VStack>
-                  </Box>
-                ))
-            }
+            { [ { title: 'Ozone', links: OZONE_LINKS }, ...(linksData || []) ]
+              .slice(0, colNum)
+              .map((linkGroup) => (
+                <Box key={ linkGroup.title }>
+                  <Skeleton
+                    fontWeight={ 500 }
+                    mb={ 3 }
+                    display="inline-block"
+                    loading={ isPlaceholderData }
+                  >
+                    { linkGroup.title }
+                  </Skeleton>
+                  <VStack gap={ 1 } alignItems="start">
+                    { linkGroup.links.map((link) => (
+                      <FooterLinkItem
+                        { ...link }
+                        key={ link.text }
+                        isLoading={ isPlaceholderData }
+                      />
+                    )) }
+                  </VStack>
+                </Box>
+              )) }
           </Grid>
         </Grid>
       </Box>
@@ -274,7 +246,6 @@ const Footer = () => {
         `,
         }}
       >
-
         { renderNetworkInfo({ lg: 'network' }) }
         { renderProjectInfo({ lg: 'info' }) }
         { renderRecaptcha({ lg: 'recaptcha' }) }
@@ -298,7 +269,9 @@ const Footer = () => {
           justifyContent={{ lg: 'flex-end' }}
           mt={{ base: 8, lg: 0 }}
         >
-          { BLOCKSCOUT_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
+          { OZONE_LINKS.map((link) => (
+            <FooterLinkItem { ...link } key={ link.text }/>
+          )) }
         </Grid>
       </Grid>
     </Box>

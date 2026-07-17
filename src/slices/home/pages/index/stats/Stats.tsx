@@ -11,8 +11,13 @@ import GasInfoTooltip from 'src/slices/gas/components/GasInfoTooltip';
 import GasPrice from 'src/slices/gas/components/GasPrice';
 import discriminateDetailedPrices from 'src/slices/gas/utils/price';
 import { useHomeDataContext } from 'src/slices/home/contexts/home-data-context';
+import useOzonePriceQuery from 'src/slices/home/hooks/useOzonePriceQuery';
 import type { HomeStatsItem } from 'src/slices/home/utils/stats';
-import { homeStatsWidgetCommonStyles, isHomeStatsItemEnabled, sortHomeStatsItems } from 'src/slices/home/utils/stats';
+import {
+  homeStatsWidgetCommonStyles,
+  isHomeStatsItemEnabled,
+  sortHomeStatsItems,
+} from 'src/slices/home/utils/stats';
 
 import { HOMEPAGE_STATS_MICROSERVICE } from 'src/features/chain-stats/stubs/home';
 import { layerLabels } from 'src/features/rollup/common/utils/layer';
@@ -27,43 +32,57 @@ import LatestBlockStatsWidget from './LatestBlockStatsWidget';
 import StatsDegraded from './StatsDegraded';
 
 const rollupFeature = config.features.rollup;
-const isOptimisticRollup = rollupFeature.isEnabled && rollupFeature.type === 'optimistic';
-const isArbitrumRollup = rollupFeature.isEnabled && rollupFeature.type === 'arbitrum';
+const isOptimisticRollup =
+  rollupFeature.isEnabled && rollupFeature.type === 'optimistic';
+const isArbitrumRollup =
+  rollupFeature.isEnabled && rollupFeature.type === 'arbitrum';
 const isStatsFeatureEnabled = config.features.stats.isEnabled;
 
 const Stats = () => {
-  const [ hasGasTracker, setHasGasTracker ] = React.useState(config.features.gasTracker.isEnabled);
+  const [ hasGasTracker, setHasGasTracker ] = React.useState(
+    config.features.gasTracker.isEnabled,
+  );
   const { blocksQuery, latestBatchQuery } = useHomeDataContext();
 
   // data from stats microservice is prioritized over data from stats api
   const statsQuery = useApiQuery('stats:pages_main', {
     queryOptions: {
       refetchOnMount: false,
-      placeholderData: isStatsFeatureEnabled ? HOMEPAGE_STATS_MICROSERVICE : undefined,
+      placeholderData: isStatsFeatureEnabled ?
+        HOMEPAGE_STATS_MICROSERVICE :
+        undefined,
       enabled: isStatsFeatureEnabled,
       refetchInterval: (query) => {
         if (query.state.status === 'error') {
           return false;
         }
 
-        return config.apis.stats?.refetchInterval?.[ 'stats:pages_main' ];
+        return config.apis.stats?.refetchInterval?.['stats:pages_main'];
       },
     },
   });
 
   const apiQuery = useStatsQuery();
+  const ozonePriceQuery = useOzonePriceQuery();
 
-  const isPlaceholderData = statsQuery.isPlaceholderData || apiQuery.isPlaceholderData || blocksQuery?.isPlaceholderData;
+  const isPlaceholderData =
+    statsQuery.isPlaceholderData ||
+    apiQuery.isPlaceholderData ||
+    blocksQuery?.isPlaceholderData;
 
   React.useEffect(() => {
     if (!isPlaceholderData && !apiQuery.data?.gas_prices?.average) {
       setHasGasTracker(false);
     }
-  // should run only after initial fetch
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // should run only after initial fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ isPlaceholderData ]);
 
-  const hasStatsError = apiQuery.isError || (statsQuery.isError && !statsQuery.isRefetchError) || blocksQuery?.isError || latestBatchQuery?.isError;
+  const hasStatsError =
+    apiQuery.isError ||
+    (statsQuery.isError && !statsQuery.isRefetchError) ||
+    blocksQuery?.isError ||
+    latestBatchQuery?.isError;
 
   if (hasStatsError) {
     return <StatsDegraded/>;
@@ -81,31 +100,41 @@ const Stats = () => {
 
     const gasPrices = discriminateDetailedPrices(apiData?.gas_prices);
 
-    const gasInfoTooltip = hasGasTracker && apiData?.gas_prices && apiData.gas_prices.average ? (
-      <GasInfoTooltip data={ apiData } dataUpdatedAt={ apiQuery.dataUpdatedAt }>
-        <SpriteIcon
-          isLoading={ isLoading }
-          name="info"
-          boxSize={ 5 }
-          flexShrink={ 0 }
-          cursor="pointer"
-          color="icon.secondary"
-          _hover={{ color: 'hover' }}
-        />
-      </GasInfoTooltip>
-    ) : null;
+    const gasInfoTooltip =
+      hasGasTracker && apiData?.gas_prices && apiData.gas_prices.average ? (
+        <GasInfoTooltip data={ apiData } dataUpdatedAt={ apiQuery.dataUpdatedAt }>
+          <SpriteIcon
+            isLoading={ isLoading }
+            name="info"
+            boxSize={ 5 }
+            flexShrink={ 0 }
+            cursor="pointer"
+            color="icon.secondary"
+            _hover={{ color: 'hover' }}
+          />
+        </GasInfoTooltip>
+      ) : null;
 
     return [
       latestBatchQuery?.data !== undefined && {
         id: 'latest_batch' as const,
-        component: <LatestBatchStatsWidget isLoading={ Boolean(isLoading) } { ...homeStatsWidgetCommonStyles }/>,
+        component: (
+          <LatestBatchStatsWidget
+            isLoading={ Boolean(isLoading) }
+            { ...homeStatsWidgetCommonStyles }
+          />
+        ),
       },
-      (blocksQuery?.data?.[0]?.height ?? statsData?.total_blocks?.value ?? apiData?.total_blocks) && {
+      (blocksQuery?.data?.[0]?.height ??
+        statsData?.total_blocks?.value ??
+        apiData?.total_blocks) && {
         id: 'total_blocks' as const,
         component: (
           <LatestBlockStatsWidget
             isLoading={ Boolean(isLoading) }
-            fallbackValue={ statsData?.total_blocks?.value ?? apiData?.total_blocks }
+            fallbackValue={
+              statsData?.total_blocks?.value ?? apiData?.total_blocks
+            }
             { ...homeStatsWidgetCommonStyles }
           />
         ),
@@ -125,23 +154,35 @@ const Stats = () => {
         id: 'total_txs' as const,
         icon: 'transactions' as const,
         label: statsData?.total_transactions?.title || 'Total transactions',
-        value: Number(statsData?.total_transactions?.value || apiData?.total_transactions).toLocaleString(),
+        value: Number(
+          statsData?.total_transactions?.value || apiData?.total_transactions,
+        ).toLocaleString(),
         href: { pathname: '/txs' as const },
         isLoading,
       },
-      (isArbitrumRollup && statsData?.total_operational_transactions?.value) && {
+      isArbitrumRollup &&
+        statsData?.total_operational_transactions?.value && {
         id: 'total_operational_txs' as const,
         icon: 'transactions' as const,
-        label: statsData?.total_operational_transactions?.title || 'Total operational transactions',
-        value: Number(statsData?.total_operational_transactions?.value).toLocaleString(),
+        label:
+            statsData?.total_operational_transactions?.title ||
+            'Total operational transactions',
+        value: Number(
+          statsData?.total_operational_transactions?.value,
+        ).toLocaleString(),
         href: { pathname: '/txs' as const },
         isLoading,
       },
-      (isOptimisticRollup && statsData?.op_stack_total_operational_transactions?.value) && {
+      isOptimisticRollup &&
+        statsData?.op_stack_total_operational_transactions?.value && {
         id: 'total_operational_txs' as const,
         icon: 'transactions' as const,
-        label: statsData?.op_stack_total_operational_transactions?.title || 'Total operational transactions',
-        value: Number(statsData?.op_stack_total_operational_transactions?.value).toLocaleString(),
+        label:
+            statsData?.op_stack_total_operational_transactions?.title ||
+            'Total operational transactions',
+        value: Number(
+          statsData?.op_stack_total_operational_transactions?.value,
+        ).toLocaleString(),
         href: { pathname: '/txs' as const },
         isLoading,
       },
@@ -157,16 +198,30 @@ const Stats = () => {
         id: 'wallet_addresses' as const,
         icon: 'wallet' as const,
         label: statsData?.total_addresses?.title || 'Wallet addresses',
-        value: Number(statsData?.total_addresses?.value || apiData?.total_addresses).toLocaleString(),
+        value: Number(
+          statsData?.total_addresses?.value || apiData?.total_addresses,
+        ).toLocaleString(),
         isLoading,
       },
-      hasGasTracker && gasPrices && {
+      hasGasTracker &&
+        gasPrices && {
         id: 'gas_tracker' as const,
         icon: 'gas' as const,
         label: 'Gas tracker',
-        value: gasPrices?.average ? <GasPrice data={ gasPrices.average }/> : 'N/A',
+        value: gasPrices?.average ? (
+          <GasPrice data={ gasPrices.average }/>
+        ) : (
+          'N/A'
+        ),
         hint: gasInfoTooltip,
         isLoading,
+      },
+      ozonePriceQuery.data?.success && {
+        id: 'coin_price' as const,
+        icon: 'tokens' as const,
+        label: 'Price',
+        value: `$ ${ ozonePriceQuery.data.data.toLocaleString() }`,
+        isLoading: ozonePriceQuery.isPlaceholderData,
       },
       apiData?.rootstock_locked_btc && {
         id: 'btc_locked' as const,
@@ -180,7 +235,10 @@ const Stats = () => {
         icon: 'hourglass' as const,
         label: 'Current epoch',
         value: `#${ apiData.celo.epoch_number }`,
-        href: { pathname: '/epochs/[number]' as const, query: { number: String(apiData.celo.epoch_number) } },
+        href: {
+          pathname: '/epochs/[number]' as const,
+          query: { number: String(apiData.celo.epoch_number) },
+        },
         isLoading,
       },
     ]
@@ -202,7 +260,9 @@ const Stats = () => {
     >
       { items.map((item) => {
         if ('component' in item) {
-          return <React.Fragment key={ item.id }>{ item.component }</React.Fragment>;
+          return (
+            <React.Fragment key={ item.id }>{ item.component }</React.Fragment>
+          );
         }
 
         return (

@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-export const CHAIN_INDICATOR_IDS = [ 'daily_txs', 'daily_operational_txs', 'coin_price', 'secondary_coin_price', 'market_cap', 'tvl' ] as const;
-export type ChainIndicatorId = typeof CHAIN_INDICATOR_IDS[number];
+export const CHAIN_INDICATOR_IDS = [
+  'daily_txs',
+  'daily_operational_txs',
+  'coin_price',
+  'secondary_coin_price',
+  'market_cap',
+  'tvl',
+] as const;
+export type ChainIndicatorId = (typeof CHAIN_INDICATOR_IDS)[number];
 
 export const HOME_STATS_WIDGET_IDS = [
   'latest_batch',
@@ -12,10 +19,11 @@ export const HOME_STATS_WIDGET_IDS = [
   'latest_l1_state_batch',
   'wallet_addresses',
   'gas_tracker',
+  'coin_price',
   'btc_locked',
   'current_epoch',
 ] as const;
-export type HomeStatsWidgetId = typeof HOME_STATS_WIDGET_IDS[number];
+export type HomeStatsWidgetId = (typeof HOME_STATS_WIDGET_IDS)[number];
 
 export interface HeroBannerButtonState {
   background?: Array<string | undefined>;
