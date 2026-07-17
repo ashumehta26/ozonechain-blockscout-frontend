@@ -18,7 +18,7 @@ export default function useOzonePriceQuery() {
 
   return useQuery<OzonePriceResponse>({
     queryKey: [ 'ozone_price' ],
-    queryFn: async() => fetch(OZONE_PRICE_URL),
+    queryFn: async() => fetch(OZONE_PRICE_URL) as Promise<OzonePriceResponse>,
     placeholderData: {
       success: true,
       message: 'Ozone price fetched successfully',
