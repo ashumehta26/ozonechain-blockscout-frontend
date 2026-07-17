@@ -37,6 +37,8 @@ Three ways to start the dev server:
 - `pnpm dev:local` — runs against a locally running Blockscout backend, using the committed `tools/dev-server/.env.localhost`.
 - `pnpm dev` — plain Next.js dev; needs a hand-written `.env.local` with the instance config.
 
+Both `dev:preset` and `dev:local` accept `--port <number>` to run on a port other than 3000 (it overrides `NEXT_PUBLIC_APP_PORT`, keeping the generated `envs.js` consistent).
+
 Gotchas:
 
 - First page load is slow because Turbopack compiles routes on demand; a single `curl localhost:3000` can take ~45s before returning 200. Expected, not a hang.
@@ -55,6 +57,14 @@ Some directories have a `CONTEXT.md` documenting non-obvious patterns specific t
 - `tools/dev-server/` — how the dev server and demo deploy get their env vars from a running instance config.
 
 If you encounter a `CONTEXT.md` not listed here, read it too (and consider adding it to this list).
+
+## Product task workflow
+
+Product tasks (GitHub issues) are worked through a spec-driven workflow: the `grill-the-task` skill
+interviews the developer to fill the issue's gaps, `to-spec` writes the spec into `.agents/tasks/` and
+routes open questions to their owners via Slack, and `implement-task` executes the spec one subtask at a
+time. See `.agents/tasks/README.md` for the lifecycle, `.agents/rules/delegation.mdc` for what agents may
+implement vs. what stays human, and `.agents/TEAM.md` for who answers open questions.
 
 ## Cursor Cloud specific instructions
 
