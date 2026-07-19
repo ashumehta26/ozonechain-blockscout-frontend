@@ -13,7 +13,6 @@ import { getFeaturePayload } from 'src/config/utils/features';
 import { rightLineArrow } from 'src/toolkit/utils/htmlEntities';
 
 const marketplaceFeature = config.features.marketplace;
-const beaconChainFeature = config.features.beaconChain;
 
 interface ReturnType {
   mainNavItems: Array<NavItem | NavGroupItem>;
@@ -132,12 +131,6 @@ export default function useNavItems(): ReturnType {
             pathname === '/validators' || pathname === '/validators/[id]',
       } :
       null;
-    const rollupDeposits = {
-      text: `Deposits (${ layerLabels.parent }${ rightLineArrow }${ layerLabels.current })`,
-      nextRoute: { pathname: '/deposits' as const },
-      icon: 'navigation/deposits',
-      isActive: pathname === '/deposits',
-    };
     const rollupWithdrawals = {
       text: `Withdrawals (${ layerLabels.current }${ rightLineArrow }${ layerLabels.parent })`,
       nextRoute: { pathname: '/withdrawals' as const },
@@ -193,13 +186,9 @@ export default function useNavItems(): ReturnType {
         rollupFeature.type === 'scroll')
     ) {
       blockchainNavItems = [
-        [
-          txs,
-          internalTxs,
-          rollupDeposits,
-          rollupWithdrawals,
-          rollupInteropMessages,
-        ].filter(Boolean),
+        [ txs, internalTxs, rollupWithdrawals, rollupInteropMessages ].filter(
+          Boolean,
+        ),
         [
           blocks,
           epochs,
@@ -218,7 +207,7 @@ export default function useNavItems(): ReturnType {
       ];
     } else if (rollupFeature.isEnabled && rollupFeature.type === 'shibarium') {
       blockchainNavItems = [
-        [ txs, internalTxs, rollupDeposits, rollupWithdrawals ].filter(Boolean),
+        [ txs, internalTxs, rollupWithdrawals ].filter(Boolean),
         [ blocks, userOps, topAccounts, verifiedContracts, nameLookup ].filter(
           Boolean,
         ),
@@ -243,13 +232,6 @@ export default function useNavItems(): ReturnType {
         validators,
         verifiedContracts,
         nameLookup,
-        beaconChainFeature.isEnabled &&
-          !beaconChainFeature.withdrawalsOnly && {
-          text: 'Deposits',
-          nextRoute: { pathname: '/deposits' as const },
-          icon: 'navigation/deposits',
-          isActive: pathname === '/deposits',
-        },
         config.features.beaconChain.isEnabled && {
           text: 'Staking',
           icon: 'link_external',
