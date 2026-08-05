@@ -11,6 +11,7 @@ import GasInfoTooltip from 'src/slices/gas/components/GasInfoTooltip';
 import GasPrice from 'src/slices/gas/components/GasPrice';
 import discriminateDetailedPrices from 'src/slices/gas/utils/price';
 import { useHomeDataContext } from 'src/slices/home/contexts/home-data-context';
+import useOzoneBalancesTotalsQuery from 'src/slices/home/hooks/useOzoneBalancesTotalsQuery';
 import useOzonePriceQuery from 'src/slices/home/hooks/useOzonePriceQuery';
 import type { HomeStatsItem } from 'src/slices/home/utils/stats';
 import {
@@ -64,6 +65,7 @@ const Stats = () => {
 
   const apiQuery = useStatsQuery();
   const ozonePriceQuery = useOzonePriceQuery();
+  const ozoneBalancesQuery = useOzoneBalancesTotalsQuery();
 
   const isPlaceholderData =
     statsQuery.isPlaceholderData ||
@@ -99,6 +101,27 @@ const Stats = () => {
     }
 
     const gasPrices = discriminateDetailedPrices(apiData?.gas_prices);
+    const currencySymbol = config.chain.currency.symbol;
+    const compactBalanceFormat = {
+      maximumFractionDigits: 2,
+      notation: 'compact' as const,
+    };
+
+    const formatCompactBalance = (raw: string | undefined) => {
+      const amount = Number(raw);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return null;
+      }
+
+      return `${ amount.toLocaleString(undefined, compactBalanceFormat) } ${ currencySymbol }`;
+    };
+
+    const tvlValue = ozoneBalancesQuery.data?.success ?
+      formatCompactBalance(ozoneBalancesQuery.data.data.contractsTotalBalance) :
+      null;
+    const circulatingSupplyValue = ozoneBalancesQuery.data?.success ?
+      formatCompactBalance(ozoneBalancesQuery.data.data.eoasTotalBalance) :
+      null;
 
     const gasInfoTooltip =
       hasGasTracker && apiData?.gas_prices && apiData.gas_prices.average ? (
@@ -222,6 +245,22 @@ const Stats = () => {
         label: 'Price',
         value: `$ ${ ozonePriceQuery.data.data.toLocaleString() }`,
         isLoading: ozonePriceQuery.isPlaceholderData,
+      },
+      tvlValue && {
+        id: 'tvl' as const,
+        icon: 'lock' as const,
+        label: 'TVL',
+        value: tvlValue,
+        hint: `Total ${ currencySymbol } held in smart contracts`,
+        isLoading: ozoneBalancesQuery.isPlaceholderData,
+      },
+      circulatingSupplyValue && {
+        id: 'circulating_supply' as const,
+        icon: 'wallet' as const,
+        label: 'Circulating supply',
+        value: circulatingSupplyValue,
+        hint: `Total ${ currencySymbol } held in externally owned accounts (EOAs)`,
+        isLoading: ozoneBalancesQuery.isPlaceholderData,
       },
       apiData?.rootstock_locked_btc && {
         id: 'btc_locked' as const,

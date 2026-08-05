@@ -6,17 +6,11 @@ import config from 'src/config';
 
 import { KEY_WORDS } from '../utils';
 
-const MAIN_DOMAINS = [
-  `*.${ config.app.host }`,
-  config.app.host,
-].filter(Boolean);
+const MAIN_DOMAINS = [ `*.${ config.app.host }`, config.app.host ].filter(Boolean);
 
 const externalFontsDomains = (() => {
   try {
-    return [
-      config.misc.fonts.heading?.url,
-      config.misc.fonts.body?.url,
-    ]
+    return [ config.misc.fonts.heading?.url, config.misc.fonts.body?.url ]
       .filter(Boolean)
       .map((urlString) => new URL(urlString))
       .map((url) => url.hostname);
@@ -40,8 +34,12 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
       config.app.isDev ? 'ws://localhost:3000/_next/webpack-hmr' : '',
 
       // APIs
-      ...Object.values(config.apis).filter(Boolean).map((api) => api.endpoint),
-      ...Object.values(config.apis).filter(Boolean).map((api) => api.socketEndpoint),
+      ...Object.values(config.apis)
+        .filter(Boolean)
+        .map((api) => api.endpoint),
+      ...Object.values(config.apis)
+        .filter(Boolean)
+        .map((api) => api.socketEndpoint),
 
       // chain RPC server
       ...config.chain.rpcUrls,
@@ -52,6 +50,9 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
 
       // github api (used for Stylus contract verification)
       'api.github.com',
+
+      // ozone chain metrics (price + address balance totals on homepage)
+      'https://chain-metrics-backend.ozonescan.com',
 
       // google fonts
       'fonts.gstatic.com',
@@ -125,22 +126,20 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
       ...(externalFontsDomains || []),
     ],
 
-    'object-src': [
-      KEY_WORDS.NONE,
-    ],
+    'object-src': [ KEY_WORDS.NONE ],
 
-    'base-uri': [
-      KEY_WORDS.NONE,
-    ],
+    'base-uri': [ KEY_WORDS.NONE ],
 
     // Restrict frame-src in private mode to prevent iframe tracking
     // In normal mode, frame-src is also set by marketplace.ts when marketplace is enabled
-    ...(isPrivateMode ? {} as CspDev.DirectiveDescriptor : {
-      'frame-src': [
-        // could be a marketplace app or NFT media (html-page)
-        '*',
-      ],
-    }),
+    ...(isPrivateMode ?
+      ({} as CspDev.DirectiveDescriptor) :
+      {
+        'frame-src': [
+          // could be a marketplace app or NFT media (html-page)
+          '*',
+        ],
+      }),
 
     'frame-ancestors': [
       KEY_WORDS.SELF,

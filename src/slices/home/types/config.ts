@@ -20,6 +20,8 @@ export const HOME_STATS_WIDGET_IDS = [
   'wallet_addresses',
   'gas_tracker',
   'coin_price',
+  'tvl',
+  'circulating_supply',
   'btc_locked',
   'current_epoch',
 ] as const;
