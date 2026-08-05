@@ -241,7 +241,7 @@ const Stats = () => {
       },
       ozonePriceQuery.data?.success && {
         id: 'coin_price' as const,
-        icon: 'tokens' as const,
+        icon: 'payment_link' as const,
         label: 'Price',
         value: `$ ${ ozonePriceQuery.data.data.toLocaleString() }`,
         isLoading: ozonePriceQuery.isPlaceholderData,
