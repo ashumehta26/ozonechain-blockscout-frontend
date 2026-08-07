@@ -102,25 +102,21 @@ const Stats = () => {
 
     const gasPrices = discriminateDetailedPrices(apiData?.gas_prices);
     const currencySymbol = config.chain.currency.symbol;
-    const compactBalanceFormat = {
-      maximumFractionDigits: 2,
-      notation: 'compact' as const,
-    };
 
-    const formatCompactBalance = (raw: string | undefined) => {
+    const formatFullBalance = (raw: string | undefined) => {
       const amount = Number(raw);
       if (!Number.isFinite(amount) || amount <= 0) {
         return null;
       }
 
-      return `${ amount.toLocaleString(undefined, compactBalanceFormat) } ${ currencySymbol }`;
+      return `${ Math.round(amount).toLocaleString() } ${ currencySymbol }`;
     };
 
     const tvlValue = ozoneBalancesQuery.data?.success ?
-      formatCompactBalance(ozoneBalancesQuery.data.data.contractsTotalBalance) :
+      formatFullBalance(ozoneBalancesQuery.data.data.contractsTotalBalance) :
       null;
     const circulatingSupplyValue = ozoneBalancesQuery.data?.success ?
-      formatCompactBalance(ozoneBalancesQuery.data.data.eoasTotalBalance) :
+      formatFullBalance(ozoneBalancesQuery.data.data.eoasTotalBalance) :
       null;
 
     const gasInfoTooltip =
